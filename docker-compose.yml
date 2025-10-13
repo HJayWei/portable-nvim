@@ -1,0 +1,45 @@
+services:
+  nvim:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: portable-nvim:latest
+    container_name: nvim-dev
+
+    # Interactive terminal
+    stdin_open: true
+    tty: true
+
+    # Volume mounts
+    volumes:
+      # Mount current directory to container's /workspace
+      - ./workspace:/workspace
+
+      # Mount configuration to container's /root/.config
+      - ./config:/root/.config
+
+      # Mount SSH keys (read-only)
+      - ~/.ssh:/root/.ssh:ro
+
+      # Mount Git configuration (read-only)
+      - ~/.gitconfig:/root/.gitconfig:ro
+
+      # Persist Neovim data (plugins and cache)
+      - nvim-data:/root/.local/share/nvim
+
+      # Persist Neovim state
+      - nvim-state:/root/.local/state/nvim
+
+
+    # Environment variables
+    environment:
+      - TERM=xterm-256color
+      - COLORTERM=truecolor
+
+    # Keep container running
+    command: zsh
+
+volumes:
+  # Persistent volumes
+  nvim-data:
+  nvim-state:

@@ -30,7 +30,6 @@ services:
       # Persist Neovim state
       - nvim-state:/root/.local/state/nvim
 
-
     # Environment variables
     environment:
       - TERM=xterm-256color

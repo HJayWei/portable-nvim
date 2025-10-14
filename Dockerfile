@@ -7,7 +7,9 @@ FROM debian:bookworm-slim
 ENV DEBIAN_FRONTEND=noninteractive \
     LANG=C.UTF-8 \
     LC_ALL=C.UTF-8 \
-    TERM=xterm-256color
+    TERM=xterm-256color \
+    NVIM_CONFIG_DIR=/root/.config/nvim \
+    NVIM_DATA_DIR=/root/.local/share/nvim
 
 # Install essential packages and tools
 RUN apt-get update && apt-get install -y \

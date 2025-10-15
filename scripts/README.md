@@ -24,6 +24,7 @@ Standalone script for building and running the container without docker-compose.
 - Uses named volumes for persistent data (same as docker-compose)
 - Auto-cleanup with `--rm` flag (container removed on exit, data persists)
 - Support for SSH keys and Git config mounting
+- **Custom workspace directory** support via `-w/--workspace` parameter
 
 **Usage:**
 
@@ -31,14 +32,18 @@ Standalone script for building and running the container without docker-compose.
 # Make executable (first time only)
 chmod +x scripts/docker-run.sh
 
-# Build and run (recommended)
+# Build and run with default workspace (./workspace)
 ./scripts/docker-run.sh run
+
+# Run with custom workspace directory
+./scripts/docker-run.sh run -w ~/projects/myapp
+./scripts/docker-run.sh run --workspace /path/to/project
 
 # Only build
 ./scripts/docker-run.sh build
 
-# Force rebuild and run
-./scripts/docker-run.sh rebuild
+# Force rebuild and run with custom workspace
+./scripts/docker-run.sh rebuild -w ~/code
 
 # Clean everything (WARNING: deletes all data)
 ./scripts/docker-run.sh clean
@@ -46,6 +51,12 @@ chmod +x scripts/docker-run.sh
 # Show help
 ./scripts/docker-run.sh help
 ```
+
+**Workspace Options:**
+- `-w PATH` or `--workspace PATH` - Specify custom workspace directory
+- Default: `./workspace` (created automatically if it doesn't exist)
+- Custom workspace must exist before running (script will validate)
+- Supports both absolute and relative paths
 
 **Persistent Data:**
 The script creates named volumes that persist even when using `--rm`:
@@ -64,6 +75,7 @@ The script creates named volumes that persist even when using `--rm`:
 | Persistent data | ✅ Yes | ✅ Yes |
 | Auto-cleanup | ❌ No | ✅ Yes (`--rm`) |
 | Background mode | ✅ Yes (`-d`) | ❌ No |
+| Custom workspace | ❌ Edit config | ✅ Yes (`-w` flag) |
 | Recommended for | Long-running dev | Quick sessions |
 
 **Choose docker-compose if:**
@@ -75,6 +87,7 @@ The script creates named volumes that persist even when using `--rm`:
 - You want automatic cleanup
 - You prefer a single command
 - You want quick, disposable sessions
+- You need to switch between different project directories easily
 
 ---
 
@@ -84,10 +97,26 @@ The script creates named volumes that persist even when using `--rm`:
 ```bash
 # First time setup
 chmod +x scripts/docker-run.sh
+
+# Use default workspace (./workspace)
 ./scripts/docker-run.sh run
+
+# Use custom workspace
+./scripts/docker-run.sh run -w ~/my-project
 
 # Opens Neovim container directly
 # Exit with Ctrl+D or 'exit'
+```
+
+### Working with Multiple Projects
+```bash
+# Switch between different projects easily
+./scripts/docker-run.sh run -w ~/projects/webapp
+./scripts/docker-run.sh run -w ~/projects/api-server
+./scripts/docker-run.sh run -w /tmp/quick-test
+
+# Each project gets its own workspace
+# But shares the same Neovim plugins and configuration
 ```
 
 ### Using with docker-compose

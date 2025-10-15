@@ -16,8 +16,10 @@ NC='\033[0m' # No Color
 # Configuration
 IMAGE_NAME="portable-nvim:latest"
 CONTAINER_NAME="nvim-dev"
-WORKSPACE_DIR="$(pwd)/workspace"
+DEFAULT_WORKSPACE_DIR="$(pwd)/workspace"
+WORKSPACE_DIR="${DEFAULT_WORKSPACE_DIR}"
 CONFIG_DIR="$(pwd)/config"
+USE_CUSTOM_WORKSPACE=false
 
 # Named volumes for persistence (same as docker-compose)
 NVIM_DATA_VOLUME="portable-nvim_nvim-data"
@@ -68,8 +70,20 @@ run_container() {
   echo -e "${BLUE}Workspace: ${WORKSPACE_DIR}${NC}"
   echo ""
 
-  # Create workspace directory if it doesn't exist
-  mkdir -p "${WORKSPACE_DIR}"
+  # Create workspace directory only if using default path
+  if [ "${USE_CUSTOM_WORKSPACE}" = false ]; then
+    mkdir -p "${WORKSPACE_DIR}"
+    echo -e "${YELLOW}Created default workspace directory${NC}"
+  else
+    # Verify custom workspace exists
+    if [ ! -d "${WORKSPACE_DIR}" ]; then
+      echo -e "${RED}Error: Specified workspace directory does not exist: ${WORKSPACE_DIR}${NC}"
+      echo -e "${YELLOW}Please create the directory first or use default workspace${NC}"
+      exit 1
+    fi
+    echo -e "${GREEN}✓ Using custom workspace: ${WORKSPACE_DIR}${NC}"
+  fi
+  echo ""
 
   # Run container with --rm for auto-cleanup
   # Named volumes persist even with --rm
@@ -88,7 +102,7 @@ run_container() {
 
 show_help() {
   cat <<EOF
-Usage: $0 [COMMAND]
+Usage: $0 [COMMAND] [OPTIONS]
 
 Commands:
     build       Build the Docker image
@@ -98,16 +112,23 @@ Commands:
     clean       Remove image and volumes (WARNING: deletes all data)
     help        Show this help message
 
-Examples:
-    $0 build            # Only build the image
-    $0 run              # Build (if needed) and run container
-    $0 rebuild          # Force rebuild and run
-    $0 clean            # Remove everything
+Options:
+    -w, --workspace PATH    Specify custom workspace directory
+                           (default: ./workspace)
 
-Note: 
+Examples:
+    $0 build                              # Only build the image
+    $0 run                                # Use default workspace (./workspace)
+    $0 run -w ~/projects/myapp            # Use custom workspace
+    $0 run --workspace /path/to/project   # Use custom workspace (long form)
+    $0 rebuild -w ~/code                  # Force rebuild with custom workspace
+    $0 clean                              # Remove everything
+
+Note:
 - Container is removed automatically on exit (--rm flag)
 - Volumes persist across container runs
 - Use Ctrl+D or 'exit' to stop the container
+- Custom workspace directory must exist before running
 EOF
 }
 
@@ -145,7 +166,32 @@ check_image_exists() {
 
 print_header
 
-case "${1:-run}" in
+# Parse arguments
+COMMAND="${1:-help}"
+shift || true
+
+# Parse options
+while [[ $# -gt 0 ]]; do
+  case $1 in
+  -w | --workspace)
+    if [ -z "$2" ]; then
+      echo -e "${RED}Error: --workspace requires a path argument${NC}"
+      exit 1
+    fi
+    WORKSPACE_DIR="$(cd "$2" 2>/dev/null && pwd || echo "$2")"
+    USE_CUSTOM_WORKSPACE=true
+    shift 2
+    ;;
+  *)
+    echo -e "${RED}Error: Unknown option '${1}'${NC}"
+    echo ""
+    show_help
+    exit 1
+    ;;
+  esac
+done
+
+case "${COMMAND}" in
 build)
   build_image
   ;;
@@ -178,7 +224,7 @@ help | --help | -h)
   ;;
 
 *)
-  echo -e "${RED}Error: Unknown command '${1}'${NC}"
+  echo -e "${RED}Error: Unknown command '${COMMAND}'${NC}"
   echo ""
   show_help
   exit 1

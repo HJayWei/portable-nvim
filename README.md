@@ -19,7 +19,32 @@ A portable Neovim development environment based on Docker, allowing you to use t
 
 ## 🚀 Quick Start
 
-### Using Docker Compose
+### Method 1: Using docker-run.sh (Recommended for Quick Sessions)
+
+```bash
+# Make script executable (first time only)
+chmod +x scripts/docker-run.sh
+
+# Build and run with default workspace (./workspace)
+./scripts/docker-run.sh run
+
+# Run with custom workspace directory
+./scripts/docker-run.sh run -w ~/projects/myapp
+
+# Force rebuild and run
+./scripts/docker-run.sh rebuild
+
+# Show all available options
+./scripts/docker-run.sh help
+```
+
+**Benefits:**
+- ✅ Auto-cleanup with `--rm` (container removed on exit)
+- ✅ Persistent data via named volumes
+- ✅ Custom workspace directory support
+- ✅ Single command to build and run
+
+### Method 2: Using Docker Compose (Recommended for Long-Running Development)
 
 1. **Start Container**
    ```bash
@@ -36,6 +61,11 @@ A portable Neovim development environment based on Docker, allowing you to use t
    docker-compose down
    ```
 
+**Benefits:**
+- ✅ Run in background with `-d`
+- ✅ Declarative configuration
+- ✅ Easy to manage multiple services
+
 ## 📂 Project Structure
 
 ```
@@ -50,7 +80,9 @@ portable-nvim/
 │       └── lua/          # Lua configuration modules
 │           ├── ...       # Your custom configuration
 ├── scripts/              # Utility scripts
-│   └── entrypoint.sh     # Container startup script
+│   ├── docker-run.sh     # Standalone Docker management script
+│   ├── entrypoint.sh     # Container startup script
+│   └── README.md         # Scripts documentation
 └── workspace/            # Working directory (mount point)
 ```
 

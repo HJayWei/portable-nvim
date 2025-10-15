@@ -17,19 +17,19 @@ echo -e "${BLUE}==========================================${NC}"
 
 # Check Neovim configuration directory
 if [ ! -d "${NVIM_CONFIG_DIR}" ]; then
-    echo -e "${YELLOW}Warning: Neovim configuration directory does not exist, creating...${NC}"
-    mkdir -p "${NVIM_CONFIG_DIR}"
+  echo -e "${YELLOW}Warning: Neovim configuration directory does not exist, creating...${NC}"
+  mkdir -p "${NVIM_CONFIG_DIR}"
 fi
 
 # Auto-install plugins on first startup
 if [ ! -d "${NVIM_DATA_DIR}/lazy" ]; then
-    echo -e "${GREEN}First startup, installing Neovim plugins...${NC}"
-    echo -e "${YELLOW}This may take some time, please wait...${NC}"
-    
-    # Silent plugin installation
-    nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
-    
-    echo -e "${GREEN}Plugin installation complete!${NC}"
+  echo -e "${GREEN}First startup, installing Neovim plugins...${NC}"
+  echo -e "${YELLOW}This may take some time, please wait...${NC}"
+
+  # Silent plugin installation
+  nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
+
+  echo -e "${GREEN}Plugin installation complete!${NC}"
 fi
 
 # Display welcome message

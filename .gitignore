@@ -19,6 +19,8 @@ Thumbs.db
 *.swp
 *.swo
 *~
+config/composer/
+config/go/
 
 # Logs
 *.log

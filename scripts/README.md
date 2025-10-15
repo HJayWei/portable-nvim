@@ -4,10 +4,78 @@ Utility scripts for managing the Portable Neovim Docker environment.
 
 ## Available Scripts
 
+### `build-config.sh`
+
+Interactive build configuration script that allows you to choose which language support to include.
+
+**Features:**
+
+- Interactive preset selection (Minimal, Standard, Full, Custom)
+- Selective language installation to reduce image size
+- Build argument configuration
+- Estimated size preview for each preset
+
+**Presets:**
+
+- **Minimal** (~800MB-1GB): Neovim + Git + lazygit + terminal tools
+- **Standard** (~1.5-1.8GB): Minimal + Python + Node.js (Recommended)
+- **Full** (~2-2.5GB): All languages (Python, Node.js, Go, Rust, PHP, Lua) + rsync
+- **Custom**: Choose specific languages and optional rsync utility
+
+**Supported Languages:**
+
+- Python (with pip and common packages)
+- Node.js (with npm and tree-sitter)
+- Go (latest stable version from official source)
+- Rust (via rustup with minimal profile)
+- PHP (with Composer)
+- Lua (5.3 with LuaRocks)
+- rsync (optional utility for remote file sync)
+
+**Usage:**
+
+```bash
+# Make executable (first time only)
+chmod +x scripts/build-config.sh
+
+# Run interactive configuration and build
+./scripts/build-config.sh
+
+# Follow the prompts to select your configuration
+```
+
+**Manual Build with Arguments:**
+
+```bash
+# Build with specific languages
+docker build \
+  --build-arg INSTALL_PYTHON="true" \
+  --build-arg INSTALL_NODEJS="true" \
+  --build-arg INSTALL_GO="false" \
+  --build-arg INSTALL_RUST="false" \
+  --build-arg INSTALL_PHP="false" \
+  --build-arg INSTALL_LUA="false" \
+  --build-arg INSTALL_RSYNC="false" \
+  -t portable-nvim:latest .
+```
+
+**Language Support Detection:**
+
+The build process creates a `.language-support` marker file that Neovim plugins use to conditionally install tools:
+
+- Located at `~/.language-support` inside the container
+- Read by `lua/utils/language-support.lua`
+- Used by `mason-tool-installer.lua` to install only relevant LSP servers
+- Prevents errors when tools for unavailable languages are requested
+
+---
+
 ### `entrypoint.sh`
+
 Container entrypoint script that runs automatically when the container starts.
 
 **Features:**
+
 - Creates Neovim config directory if missing
 - Auto-installs plugins on first startup
 - Displays welcome message
@@ -17,9 +85,11 @@ Container entrypoint script that runs automatically when the container starts.
 ---
 
 ### `docker-run.sh`
+
 Standalone script for building and running the container without docker-compose.
 
 **Features:**
+
 - Auto-detects if image needs building
 - Uses named volumes for persistent data (same as docker-compose)
 - Auto-cleanup with `--rm` flag (container removed on exit, data persists)
@@ -53,6 +123,7 @@ chmod +x scripts/docker-run.sh
 ```
 
 **Workspace Options:**
+
 - `-w PATH` or `--workspace PATH` - Specify custom workspace directory
 - Default: `./workspace` (created automatically if it doesn't exist)
 - Custom workspace must exist before running (script will validate)
@@ -60,6 +131,7 @@ chmod +x scripts/docker-run.sh
 
 **Persistent Data:**
 The script creates named volumes that persist even when using `--rm`:
+
 - `portable-nvim_nvim-data` - Neovim plugins and cache
 - `portable-nvim_nvim-state` - Neovim state files
 
@@ -79,21 +151,26 @@ The script creates named volumes that persist even when using `--rm`:
 | Recommended for | Long-running dev | Quick sessions |
 
 **Choose docker-compose if:**
+
 - You want to run container in background
 - You prefer declarative configuration
 - You work with multiple services
 
 **Choose docker-run.sh if:**
+
 - You want automatic cleanup
 - You prefer a single command
 - You want quick, disposable sessions
 - You need to switch between different project directories easily
+
+**Note:** For initial setup, use `build-config.sh` to configure and build the image, then use `docker-run.sh` to run it.
 
 ---
 
 ## Examples
 
 ### Quick Start with docker-run.sh
+
 ```bash
 # First time setup
 chmod +x scripts/docker-run.sh
@@ -109,6 +186,7 @@ chmod +x scripts/docker-run.sh
 ```
 
 ### Working with Multiple Projects
+
 ```bash
 # Switch between different projects easily
 ./scripts/docker-run.sh run -w ~/projects/webapp
@@ -120,6 +198,7 @@ chmod +x scripts/docker-run.sh
 ```
 
 ### Using with docker-compose
+
 ```bash
 # Start in background
 docker-compose up -d
@@ -132,6 +211,7 @@ docker-compose down
 ```
 
 ### Cleanup Old Data
+
 ```bash
 # Remove all volumes and images
 ./scripts/docker-run.sh clean
